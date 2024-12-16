@@ -1,5 +1,7 @@
-from enum import Enum
 import heapq
+import time
+from enum import Enum
+
 
 # switch to using tuples for directions because heapq doesn't like complex numbers
 class Direction(Enum):
@@ -8,13 +10,12 @@ class Direction(Enum):
     WEST = (-1, 0)
     EAST = (1, 0)
 
+
 class Maze:
     def __init__(self, grid_lines: list[str]):
         self.reindeer = None
         self.goal = None
 
-        self.move_cost = 1
-        self.turn_cost = 1000
         self.current_direction = Direction.EAST
 
         self.grid = {}
@@ -41,7 +42,8 @@ class Maze:
             cost, _, path, current, current_direction = heapq.heappop(queue)
 
             # If we've found a cheaper route to get here with the same direction, skip
-            if (current, current_direction) in visited and visited[(current, current_direction)] < cost:
+            if (current, current_direction) in visited and visited[
+                (current, current_direction)] < cost:
                 continue
             visited[(current, current_direction)] = cost
 
@@ -60,14 +62,18 @@ class Maze:
 
             # Explore neighbors
             for direction in Direction:
+                # don't move backwards
+                if direction.value == (-current_direction.value[0], -current_direction.value[1]):
+                    continue
+
                 dx, dy = direction.value
                 new_position = (current[0] + dx, current[1] + dy)
                 if self.grid.get(new_position) == "#":
                     continue
 
-                new_cost = cost + self.move_cost
+                new_cost = cost + 1
                 if direction != current_direction:
-                    new_cost += self.turn_cost
+                    new_cost += 1000
 
                 # Prune if cost exceeds current known minimal cost
                 if new_cost > min_cost:
@@ -79,7 +85,10 @@ class Maze:
 
         return minimal_paths
 
+
 def main():
+    before = time.perf_counter()
+    
     with open('input/16_2.txt') as f:
         grid_lines = f.read().splitlines()
 
@@ -89,6 +98,9 @@ def main():
     print("Number of minimal cost paths:", len(all_minimal_paths))
     total_unique_positions = len(set(pos for p in all_minimal_paths for pos in p))
     print("Total unique positions in all minimal paths:", total_unique_positions)
+
+    print(f"Time taken: {time.perf_counter() - before:.2f}s")
+
 
 if __name__ == "__main__":
     main()
