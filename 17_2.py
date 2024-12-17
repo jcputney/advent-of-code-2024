@@ -66,14 +66,20 @@ def main():
             instructions = list(map(int, program.split(",")))
 
     # build the output backwards, starting from the end of the program
+    # this way the register grows exponentially, using the solutions from the previous steps
+    # to find the solutions for the next step
+    #
+    # so if we have the input 0,1,2,3 it's easier to think of it as 000, 001, 010, 011
+    # or 000001010011, where the first 3 bits (starting from the right) are the first step,
+    # the next 3 bits are the second step and so on.
     program_length = len(instructions) - 1
     current_registers = [0]
     while program_length >= 0:
         next_registers = []
         expected_output = instructions[program_length:]
         for current_a in current_registers:
-            register_a = current_a * 8
-            for i in range(8): #
+            register_a = current_a * 8 # shift the register to the left by 3 bits
+            for i in range(8): # iterate over the current 3 bits
                 computer = ThreeBitComputer(register_a + i, instructions)
                 computer.run()
                 if computer.output == expected_output:
